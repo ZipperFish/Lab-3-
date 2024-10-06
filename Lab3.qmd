@@ -132,6 +132,7 @@ skim(crashes)
 crashes |>
   skim() |>
     dplyr::filter(n_missing > 0)
+
 ```
 
 
