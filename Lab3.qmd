@@ -19,8 +19,29 @@ We will also explore the concept of an *inlier*, which is an erroneous value tha
 **Problem 1: Data Description and Outliers.**
 
 Load `diabetes.csv` into R and take a look at the data using the `skimr` package (make sure to install it if you don't have it). Skimr provides a tidy summary function called `skim`. Use `skim` on the data frame that you loaded from diabetes.csv.
+```{r}
+install.packages("skimr")
+install.packages("GGally")
+```
+
+```{r}
+library(skimr)
+library(GGally)
+library(tidyverse)
+```
+
+```{r}
+library(readr)
+diabetes <- read_csv("diabetes.csv")
+View(diabetes)
+```
+
 
 Skim will list several variables. Pregnancies is the past number of pregnancies (this dataset includes women 21 years or older), glucose describes the concentration of glucose in the blood after an oral glucose tolerance test (drinking a sugary drink and measuring two hours later), skin thickness is the result of a skinfold thickness test taken at the triceps (upper arm), Insulin is the insulin concentration in the blood taken at the same time as the glucose measurement (Insulin is a hormone that transports glucose into cells), BMI is "Body Mass Index", Diabetes Pedigree Function is a measure of diabetes risk based on the family history of diabetes for each patient (this is an engineered feature) and outcome is equal to 1 if the patient was diagnosed with diabetes with 5 years and 0 otherwise.
+
+```{r}
+skim(diabetes)
+```
 
 a) Skim should show no missing data, but should indicate potential data issues. Do any of the percentile ranges (p0, p25, p50, p75, or p100) for the reported variables suggest a potential problem?
 
@@ -28,8 +49,59 @@ b) Further investigate the dataset to find potentially problematic variables usi
 
 Write an overview of which values are missing and replace all missing values with NA for the next stage of analysis.
 
+```{r}
+diabetes |> 
+  group_by(Glucose) |>
+  count(Glucose) |>
+  arrange(desc(Glucose)) 
+```
+
+
+```{r}
+diabetes |> 
+  group_by(Pregnancies) |>
+  count(Pregnancies) |>
+  arrange(desc(Pregnancies))
+```
+```{r}
+diabetes |> 
+  group_by(BloodPressure) |>
+  count(BloodPressure) |>
+  arrange(desc(BloodPressure))
+```
+```{r}
+diabetes |> 
+  group_by(SkinThickness) |>
+  count(SkinThickness) |>
+  arrange(desc(SkinThickness))
+```
+```{r}
+diabetes |> 
+  group_by(Insulin) |>
+  count(Insulin) |>
+  arrange(desc(Insulin))
+```
+
+```{r}
+diabetes = diabetes |>
+  mutate( Pregnancies = if_else( Pregnancies == 0, NA , Pregnancies),
+          Glucose = if_else(Glucose == 0, NA, Glucose),
+          BloodPressure = if_else(BloodPressure == 0, NA, BloodPressure),
+          Insulin = if_else(Insulin == 0, NA, Insulin),
+          BMI = if_else(BMI == 0, NA, BMI),
+          DiabetesPedigreeFunction = if_else( DiabetesPedigreeFunction  == 0, NA, DiabetesPedigreeFunction),
+          Age = if_else( Age == 0, NA, Age),
+          Outcome = if_else( Outcome == 0, NA, Outcome)
+          )
+```
+
 c) Perform Tukey Box plots on each variable to identify potential outliers. Which variables have the most outliers? Are there any outliers that you think come from
 measurement error? If so remove them.
+
+```{r}
+diabetes |>
+ggpairs(diabetes) + theme_bw()
+```
 
 **Problem 2: Pair Plots**
 
@@ -43,7 +115,25 @@ Use the `GGally` package and its function `ggpair` on both the original dataset 
 
 Load the NYC car crash dataset using `read_csv`. You can download the data from the course website by [clicking here](https://github.com/georgehagstrom/DATA607/blob/main/website/assignments/labs/labData/crashes.csv). 
 
+```{r}
+library(readr)
+crashes <- read_csv("crashes.csv")
+View(crashes)
+```
+
 a)  Which variables have missing data (use `skim` or another tool of your choosing)? Some missing values have a different interpretation than others- what does it mean when `VEHICLE TYPE CODE 2` is missing compared to `LATITUDE`?
+
+```{r}
+skim(crashes)
+```
+
+
+```{r}
+crashes |>
+  skim() |>
+    dplyr::filter(n_missing > 0)
+```
+
 
 b)  Latitude and Longitude have the same number of missing values. Verify that they always occur in the same row. Check the counts of latitude and longitude values- do you find any hidden missing values? If so recode them as NA.
 
